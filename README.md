@@ -12,6 +12,8 @@ Phase V - Testing - Harshitha
 ---------------------------------------------------------------------------------------
 Machine Learning Model:
 
-Install Libraries: 
+- Verify Python installation
+- Install Libraries before importing
+  
 
 
