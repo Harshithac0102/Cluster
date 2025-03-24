@@ -1,6 +1,6 @@
 
-# 09. DistilBERT Model for Sentiment Classification
-# ================================================
+# DistilBERT Model for Sentiment Classification
+
 
 from transformers import AutoConfig, AutoTokenizer, AutoModelForSequenceClassification
 from transformers import get_linear_schedule_with_warmup
