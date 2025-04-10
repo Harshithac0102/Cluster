@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Categorizer</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Embedded CSS -->
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Container */
+        .container {
+        flex: 1;
+        width: 90%;
+        max-width: 800px;
+        margin: 40px auto;
+        background-color: #fff;
+        border: 2px solid #e0e0e0; 
+        border-radius: 16px; 
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        padding: 30px;
+        animation: fadeIn 0.6s ease-in-out;
+}
+
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 140px;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            font-size: 2em;
+            color: #007BFF;
+        }
+
+        /* Main Content */
+        main textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 2px solid #007BFF;
+            border-radius: 4px;
+            resize: vertical;
+            font-size: 1em;
+        }
+
+        main button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        main button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Loading Indicator */
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #007BFF;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Table */
+        #results {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #results h2 {
+            margin-bottom: 10px;
+            color: #007BFF;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .buttons button {
+            flex: 1;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background-color: #1e7e34;
+        }
+
+        #downloadBtn {
+            background-color: #17a2b8;
+        }
+
+        #downloadBtn:hover {
+            background-color: #117a8b;
+        }
+
+        #saveBtn {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        #saveBtn:hover {
+            background-color: #e0a800;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 10px 0;
+            background-color: #007BFF;
+            color: #fff;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Modal for Save Confirmation */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 400px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="logo.png" alt="Logo" style="max-width: 200px; height: auto;">
+            <h1>ReviewSense</h1>
+            <h2>Aspect-Based Sentiment Analysis of Product Reviews</h2>
+        </header>
+        
+        <main>
+            <textarea id="reviewInput" placeholder="Enter your review here...">I recently upgraded to the Google Pixel 7 Pro, and my experience has been quite mixed. The display is stunning, and the camera performance is exceptional, capturing detailed photos even in low light. However, the battery life is disappointing and struggles to last a full day with moderate use. There are also occasional stutters and lag when switching between apps. The build quality is solid but the phone is slippery and prone to smudges. While the user interface is clean and intuitive, some pre-installed apps detract from the pure Android experience. The value for money is debatable, given its highs in display and camera but lows in battery and performance, making it a mixed bag for an upgrade.</textarea>
+            <button id="analyzeBtn">Analyze Review</button>
+            
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing...</p>
+            </div>
+            
+            <div id="results">
+                <h2>Analysis Results</h2>
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Aspect</th>
+                            <th>Sentiment</th>
+                            <th>Score</th>
+                            <th>Justification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be inserted here -->
+                    </tbody>
+                </table>
+                <div class="buttons">
+                    <button id="downloadBtn">Download Results</button>
+
+                </div>
+            </div>
+        </main>
+        
+       
+    </div>
+
+    <!-- Modal for Save Confirmation -->
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Results have been saved successfully!</p>
+        </div>
+    </div>
+
+    <!-- Embedded JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const reviewInput = document.getElementById('reviewInput');
+            const loadingDiv = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            const resultsTableBody = document.querySelector('#resultsTable tbody');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            const saveModal = document.getElementById('saveModal');
+            const closeModal = document.querySelector('.close');
+
+            let currentAnalysis = [];
+
+            analyzeBtn.addEventListener('click', function() {
+                const reviewText = reviewInput.value.trim();
+                if (!reviewText) {
+                    alert('Please enter a review to analyze.');
+                    return;
+                }
+
+                // Show loading indicator
+                loadingDiv.style.display = 'block';
+                resultsDiv.style.display = 'none';
+                resultsTableBody.innerHTML = '';
+
+                // Send POST request to /analyze
+                fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ review: reviewText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = 'none';
+                    if (data.error) {
+                        alert('Error: ' + data.error);
+                        return;
+                    }
+                    const analysis = data.analysis;
+                    currentAnalysis = analysis;
+                    populateResultsTable(analysis);
+                    resultsDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    loadingDiv.style.display = 'none';
+                    alert('An error occurred: ' + error);
+                });
+            });
+
+            function populateResultsTable(analysis) {
+                resultsTableBody.innerHTML = '';
+                analysis.forEach(item => {
+                    const row = document.createElement('tr');
+
+                    const aspectCell = document.createElement('td');
+                    aspectCell.textContent = item.Aspect;
+                    row.appendChild(aspectCell);
+
+                    const sentimentCell = document.createElement('td');
+                    sentimentCell.textContent = item.Sentiment;
+                    row.appendChild(sentimentCell);
+
+                    const scoreCell = document.createElement('td');
+                    scoreCell.textContent = item.Score;
+                    row.appendChild(scoreCell);
+
+                    const justificationCell = document.createElement('td');
+                    justificationCell.textContent = item.Justification;
+                    row.appendChild(justificationCell);
+
+                    resultsTableBody.appendChild(row);
+                });
+            }
+
+            downloadBtn.addEventListener('click', function() {
+                if (currentAnalysis.length === 0) {
+                    alert('No analysis data to download.');
+                    return;
+                }
+
+                const csvContent = generateCSV(currentAnalysis);
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'analysis.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            function generateCSV(data) {
+                const headers = ['Aspect', 'Sentiment', 'Score', 'Justification'];
+                const rows = data.map(item => [
+                    `"${item.Aspect.replace(/"/g, '""')}"`,
+                    `"${item.Sentiment}"`,
+                    `"${item.Score}"`,
+                    `"${item.Justification.replace(/"/g, '""')}"`
+                ]);
+                return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+            }
+
+            saveBtn.addEventListener('click', function() {
+                if (currentAnalysis.length === 0) {
+                    alert('No analysis data to save.');
+                    return;
+                }
+
+                // Save to localStorage
+                localStorage.setItem('savedAnalysis', JSON.stringify(currentAnalysis));
+
+                // Show modal
+                saveModal.style.display = 'block';
+            });
+
+            // Close modal when user clicks on <span> (x)
+            closeModal.addEventListener('click', function() {
+                saveModal.style.display = 'none';
+            });
+
+            // Close modal when user clicks anywhere outside of the modal
+            window.addEventListener('click', function(event) {
+                if (event.target == saveModal) {
+                    saveModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
